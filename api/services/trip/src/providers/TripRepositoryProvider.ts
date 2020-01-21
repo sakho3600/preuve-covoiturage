@@ -187,6 +187,10 @@ export class TripRepositoryProvider implements TripRepositoryInterface {
     let where = '';
     const values: any[] = [params.date.start, params.date.end];
 
+    // Force refresh
+    const db = await this.connection.getClient().connect();
+    db.query('REFRESH MATERIALIZED VIEW trip.export;', []);
+
     const territoryWhere = '(start_territory_id = ANY ($3::int[]) OR end_territory_id = ANY ($4::int[]))';
     const operatorWhere = (i: number) => `operator_id = ANY ($${i}::text[])`;
 
@@ -203,13 +207,19 @@ export class TripRepositoryProvider implements TripRepositoryInterface {
 
     // operator visibility extra filtering
     let territoryOpVJoin = '';
-    let territoryOpVNameSelect = 'operator_name,';
+    let territoryOpVNameSelect = 'operator_driver_name, operator_passenger_name';
 
     if (params.operator_territory_id) {
-      territoryOpVJoin = `LEFT JOIN territory.territory_operators teop on teop.operator_id = export.operator_id::int AND teop.territory_id = '${
+      territoryOpVJoin = `
+      LEFT JOIN territory.territory_operators teop_d on teop_d.operator_driver_id = export.operator_id::int AND teop_d.territory_id = '${
         params.operator_territory_id
-      }'`;
-      territoryOpVNameSelect = `(CASE WHEN teop.operator_id <> 0 THEN export.operator_name ELSE '' END) as operator_name,`;
+      }'
+      LEFT JOIN territory.territory_operators teop_p on teop_p.operator_driver_id = export.operator_id::int AND teop_p.territory_id = '${
+        params.operator_territory_id
+      }'
+      `;
+      territoryOpVNameSelect = `(CASE WHEN teop_d.operator_id <> 0 THEN export.operator_driver_name ELSE '' END) as operator_driver_name,`;
+      territoryOpVNameSelect = `(CASE WHEN teop_p.operator_id <> 0 THEN export.operator_passenger_name ELSE '' END) as operator_passenger_name,`;
     }
 
     const query = {
@@ -248,7 +258,7 @@ export class TripRepositoryProvider implements TripRepositoryInterface {
         ${where}
       `,
     };
-    const db = await this.connection.getClient().connect();
+
     const cursorCb = db.query(new Cursor(query.text, query.values));
 
     return promisify(cursorCb.read.bind(cursorCb)) as (count: number) => Promise<LightTripInterface[]>;
