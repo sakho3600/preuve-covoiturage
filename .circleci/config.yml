@@ -172,11 +172,13 @@ workflows:
             branches:
               only:
                 - dev
+                - irt
       - front-cypress:
           filters:
             branches:
               only:
                 - dev
+                - irt
       - front-deploy-dev:
           requires:
             - front-qa
@@ -184,6 +186,7 @@ workflows:
             branches:
               only:
                 - dev
+                - irt
 
   frontend-staging:
     jobs:
