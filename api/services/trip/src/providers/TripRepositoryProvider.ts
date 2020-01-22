@@ -194,33 +194,29 @@ export class TripRepositoryProvider implements TripRepositoryInterface {
     const territoryWhere = '(start_territory_id = ANY ($3::int[]) OR end_territory_id = ANY ($4::int[]))';
     const operatorWhere = (i: number) => `operator_id = ANY ($${i}::text[])`;
 
-    if (params.operator_id && params.territory_id) {
-      where = `AND ${operatorWhere(5)} AND ${territoryWhere}`;
-      values.push(params.territory_id, params.territory_id, params.operator_id);
-    } else if (params.operator_id) {
-      where = `AND ${operatorWhere(3)}`;
-      values.push(params.operator_id);
-    } else if (params.territory_id) {
-      where = `AND ${territoryWhere}`;
-      values.push(params.territory_id, params.territory_id);
-    }
+    // if (params.operator_id && params.territory_id) {
+    //   where = `AND ${operatorWhere(5)} AND ${territoryWhere}`;
+    //   values.push(params.territory_id, params.territory_id, params.operator_id);
+    // } else if (params.operator_id) {
+    //   where = `AND ${operatorWhere(3)}`;
+    //   values.push(params.operator_id);
+    // } else if (params.territory_id) {
+    //   where = `AND ${territoryWhere}`;
+    //   values.push(params.territory_id, params.territory_id);
+    // }
 
     // operator visibility extra filtering
     let territoryOpVJoin = '';
     let territoryOpVNameSelect = 'operator_driver_name, operator_passenger_name';
 
-    if (params.operator_territory_id) {
-      territoryOpVJoin = `
-      LEFT JOIN territory.territory_operators teop_d on teop_d.operator_driver_id = export.operator_id::int AND teop_d.territory_id = '${
-        params.operator_territory_id
-      }'
-      LEFT JOIN territory.territory_operators teop_p on teop_p.operator_driver_id = export.operator_id::int AND teop_p.territory_id = '${
-        params.operator_territory_id
-      }'
-      `;
-      territoryOpVNameSelect = `(CASE WHEN teop_d.operator_id <> 0 THEN export.operator_driver_name ELSE '' END) as operator_driver_name,`;
-      territoryOpVNameSelect = `(CASE WHEN teop_p.operator_id <> 0 THEN export.operator_passenger_name ELSE '' END) as operator_passenger_name,`;
-    }
+    // if (params.operator_territory_id) {
+    //   territoryOpVJoin = `
+    //   LEFT JOIN territory.territory_operators teop_d on teop_d.operator_id = export.operator_driver_id::int AND teop_d.territory_id = '${params.operator_territory_id}'
+    //   LEFT JOIN territory.territory_operators teop_p on teop_p.operator_id = export.operator_driver_id::int AND teop_p.territory_id = '${params.operator_territory_id}'
+    //   `;
+    //   territoryOpVNameSelect = `(CASE WHEN teop_d.operator_id <> 0 THEN export.operator_driver_name ELSE '' END) as operator_driver_name,`;
+    //   territoryOpVNameSelect = `(CASE WHEN teop_p.operator_id <> 0 THEN export.operator_passenger_name ELSE '' END) as operator_passenger_name,`;
+    // }
 
     const query = {
       values,
@@ -255,7 +251,6 @@ export class TripRepositoryProvider implements TripRepositoryInterface {
         FROM trip.export
         ${territoryOpVJoin}
         WHERE $1::timestamp <= journey_start_datetime AND journey_start_datetime <= $2::timestamp
-        ${where}
       `,
     };
 
