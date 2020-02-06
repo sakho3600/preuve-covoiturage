@@ -207,7 +207,7 @@ export class TripRepositoryProvider implements TripRepositoryInterface {
 
     // operator visibility extra filtering
     let territoryOpVJoin = '';
-    let territoryOpVNameSelect = 'operator_driver_name, operator_passenger_name';
+    let territoryOpVNameSelect = 'operator_driver_name, operator_passenger_name, ';
 
     // if (params.operator_territory_id) {
     //   territoryOpVJoin = `
