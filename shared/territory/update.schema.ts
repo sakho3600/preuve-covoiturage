@@ -7,7 +7,6 @@ export const update = {
   type: 'object',
   required: ['_id', 'level', 'name'],
   additionalProperties: false,
-
   properties: {
     _id: { macro: 'serial' },
     contacts,
