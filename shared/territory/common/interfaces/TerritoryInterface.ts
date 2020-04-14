@@ -26,8 +26,7 @@ export interface TerritoryBaseInterface {
   shortname?: string;
   company_id?: number;
   active?: boolean;
-  activable?: boolean;
-  // active_since?: Date;
+  active_since?: Date;
   contacts?: ContactsInterface;
   density?: number;
   address: TerritoryAddress;
