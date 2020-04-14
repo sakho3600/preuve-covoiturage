@@ -410,6 +410,9 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
       values.push(`${data.geo}`);
     }
 
+    // TODO: to implement
+    throw new Error('Not implemented : query to adapt');
+    /*
     const query = {
       text: `
         INSERT INTO ${this.table}
