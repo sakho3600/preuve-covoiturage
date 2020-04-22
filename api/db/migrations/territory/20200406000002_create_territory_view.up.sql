@@ -115,7 +115,7 @@ WITH RECURSIVE
   LEFT JOIN territory.territories AS t ON t._id = a._id
 );
 
-CREATE INDEX IF NOT EXISTS territory_territories_view_id_idx ON territory.territories_view(_id);
+);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS territory.territories_breadcrumb AS (
   WITH data AS (

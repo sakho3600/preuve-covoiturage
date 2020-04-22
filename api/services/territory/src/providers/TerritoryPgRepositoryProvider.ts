@@ -92,6 +92,7 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
       `,
       values: [id],
     };
+    console.log(finalQuery.text, finalQuery.values);
 
     const result = await this.connection.getClient().query(query);
     return result.rows.length > 0 ? result.rows[0] : [];
