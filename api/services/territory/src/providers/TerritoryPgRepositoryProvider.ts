@@ -1,15 +1,27 @@
 import { provider, NotFoundException, KernelInterfaceResolver, ConflictException } from '@ilos/common';
 import { PostgresConnection } from '@ilos/connection-postgres';
+import { ParamsInterface as PatchParamsInterface } from '../shared/territory/update.contract';
 
-import { TerritoryInterface } from '../shared/territory/common/interfaces/TerritoryInterface';
-import { TerritoryDbInterface } from '../shared/territory/common/interfaces/TerritoryDbInterface';
+import { TerritoryBaseInterface } from '../shared/territory/common/interfaces/TerritoryInterface';
+import { TerritoryDbMetaInterface } from '../shared/territory/common/interfaces/TerritoryDbMetaInterface';
 import {
   TerritoryRepositoryProviderInterfaceResolver,
   TerritoryRepositoryProviderInterface,
 } from '../interfaces/TerritoryRepositoryProviderInterface';
 
-import { signature as companyFindSignature } from '../shared/company/find.contract';
-import { signature as companyFetchSignature } from '../shared/company/fetch.contract';
+import {
+  TerritoryQueryInterface,
+  SortEnum,
+  ProjectionFieldsEnum,
+  directFields,
+  allAncestorRelationFieldEnum,
+  allCompanyFieldEnum,
+  allTerritoryQueryCompanyFields,
+  allTerritoryQueryRelationFields,
+  TerritoryQueryEnum,
+  allTerritoryQueryDirectFields,
+  allTerritoryQueryFields,
+} from '../shared/territory/common/interfaces/TerritoryQueryInterface';
 
 @provider({
   identifier: TerritoryRepositoryProviderInterfaceResolver,
@@ -19,30 +31,124 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
 
   constructor(protected connection: PostgresConnection, protected kernel: KernelInterfaceResolver) {}
 
-  async find(id: number): Promise<TerritoryDbInterface> {
-    const query = {
-      text: `
-        SELECT * FROM ${this.table}
-        WHERE _id = $1
-        AND deleted_at IS NULL
-        LIMIT 1
-      `,
-      values: [id],
-    };
+  async find(
+    query: TerritoryQueryInterface,
+    sort: SortEnum[],
+    projection: ProjectionFieldsEnum,
+  ): Promise<TerritoryDbMetaInterface> {
+    const selectsFields = [];
+    const joins = [];
+    const whereConditions = [];
+    const values = [];
+    let includeRelation = false;
+    let includeCompany = false;
+    // let includeGeo = false;
+    function autoBuildAncestorJoin(): void {
+      if (!includeRelation) {
+        includeRelation = true;
+        joins.push('LEFT JOIN territory.territories_view tv ON(tv._id = t._id)');
+      }
+    }
 
-    const result = await this.connection.getClient().query(query);
+    function autoBuildCompanyJoin(): void {
+      if (!includeCompany) {
+        includeCompany = true;
+        joins.push('LEFT JOIN company.companies c ON(t.company_id = c._id)');
+      }
+    }
+
+    // build select
+    projection.forEach((field) => {
+      switch (true) {
+        case directFields.indexOf(field) !== -1:
+          selectsFields.push(`t.${field}`);
+          break;
+        case allAncestorRelationFieldEnum.indexOf(field) !== -1:
+          selectsFields.push(`tv.${field}`);
+          autoBuildAncestorJoin();
+          break;
+
+        case allCompanyFieldEnum.indexOf(field) !== -1:
+          selectsFields.push(`c.${field}`);
+          autoBuildCompanyJoin();
+          break;
+        default:
+          throw new Error(`${field} not supported for territory find select builder`);
+          break;
+      }
+    });
+
+    // build filter
+    const queryFields: { field: TerritoryQueryEnum; value: any }[] = allTerritoryQueryFields
+      .filter((field) => (query as Record<string, any>).hasOwnProperty(field))
+      .map((field) => ({ field, value: (query as any)[field] }));
+    queryFields.forEach((hash) => {
+      switch (true) {
+        case allTerritoryQueryDirectFields.indexOf(hash.field) !== -1:
+          whereConditions.push(`t.${hash.field} = $${values.length + 1}`);
+          values.push(hash.value.toString());
+          break;
+        case allTerritoryQueryRelationFields.indexOf(hash.field) !== -1:
+          // whereConditions.push(`tv.${hash.field} = $${values.length + 1}`);
+          switch (hash.field) {
+            case TerritoryQueryEnum.HasAncestorId:
+              whereConditions.push(`$${values.length + 1} = ANY (tv.ancestors)`);
+              break;
+            case TerritoryQueryEnum.HasDescendantId:
+              whereConditions.push(`$${values.length + 1} = ANY (tv.descendants)`);
+              break;
+            case TerritoryQueryEnum.HasChildId:
+              whereConditions.push(`$${values.length + 1} = ANY (tv.children)`);
+              break;
+
+            case TerritoryQueryEnum.HasParentId:
+              whereConditions.push(`$${values.length + 1} = tv.parent`);
+              break;
+          }
+          values.push(hash.value.toString());
+          autoBuildAncestorJoin();
+          break;
+        case allTerritoryQueryCompanyFields.indexOf(hash.field) !== -1:
+          whereConditions.push(`c.${hash.field.replace('company_', '')} = $${values.length + 1}`);
+          values.push(hash.value.toString());
+          autoBuildCompanyJoin();
+          break;
+        case hash.field === TerritoryQueryEnum.Search:
+          const whereOr = [];
+          hash.value
+            .toString()
+            .split(' ')
+            .forEach((word) => {
+              whereOr.push(`LOWER(t.name) LIKE $${values.length + 1}`);
+              values.push(`%${word.toLowerCase()}%`);
+            });
+
+          whereConditions.push(`(${whereOr.join(' OR ')})`);
+          break;
+        default:
+          throw new Error(`${hash.field} not supported for territory find query filter`);
+          break;
+      }
+    });
+
+    // TODO: implement switch for edge cases
+    const finalSort = sort.map((sortField) => `t.${sort}`);
+
+    const finalQuery = {
+      text: `SELECT ${selectsFields.join(',')} \n FROM ${this.table} t \n ${joins.join(`\n`)} ${
+        whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+      } 
+      ${finalSort.length ? ` ORDER BY ${finalSort.join(',')}` : ''}`,
+      values,
+    };
+    console.log(finalQuery.text, finalQuery.values);
+
+    const result = await this.connection.getClient().query(finalQuery);
 
     if (result.rowCount === 0) {
       return undefined;
     }
     const territory = result.rows[0];
-    if (territory.siret) {
-      territory.company = await this.kernel.call(
-        companyFindSignature,
-        { siret: territory.siret },
-        { channel: { service: 'operator' }, call: { user: { permissions: ['company.find'] } } },
-      );
-    }
 
     return territory;
   }
@@ -58,7 +164,7 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
     if (rowCount !== 0) throw new ConflictException('Double siret is not allowed for territory ' + id);
   }
 
-  async all(): Promise<TerritoryDbInterface[]> {
+  async all(): Promise<TerritoryDbMetaInterface[]> {
     const query = {
       text: `
         SELECT * FROM ${this.table}
@@ -71,9 +177,13 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
     return result.rows;
   }
 
-  async create(data: TerritoryInterface): Promise<TerritoryDbInterface> {
-    await this.hasDoubleSiretThenFail(data.siret);
+  async create(data: TerritoryBaseInterface): Promise<TerritoryDbMetaInterface> {
+    // TODO: check siret collision method (or not)
+    // awaeit this.hasDoubleSiretThenFail(data.siret);
 
+    // TODO: to implement
+    throw new Error('Not implemented : query to adapt');
+    /*
     const query = {
       text: `
         INSERT INTO ${this.table}
@@ -93,6 +203,7 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
         VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9 )
         RETURNING *
       `,
+      
       values: [
         data.siret,
         data.name,
@@ -105,20 +216,22 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
         data.cgu_accepted_by,
       ],
     };
+    */
 
-    const result = await this.connection.getClient().query(query);
-    if (result.rowCount !== 1) {
-      throw new Error(`Unable to create territory (${JSON.stringify(data)})`);
-    }
+    // const result = await this.connection.getClient().query(query);
+    // if (result.rowCount !== 1) {
+    //   throw new Error(`Unable to create territory (${JSON.stringify(data)})`);
+    // }
 
-    if (data.siret) {
-      await this.kernel.notify(companyFetchSignature, data.siret, {
-        channel: { service: 'operator' },
-        call: { user: { permissions: ['company.fetch'] } },
-      });
-    }
+    // if (data.siret) {
+    //   await this.kernel.notify(companyFetchSignature, data.siret, {
+    //     channel: { service: 'operator' },
+    //     call: { user: { permissions: ['company.fetch'] } },
+    //   });
+    // }
 
-    return result.rows[0];
+    // return result.rows[0];
+    return null;
   }
 
   async delete(id: number): Promise<void> {
@@ -141,8 +254,12 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
   }
 
   // TODO
-  async update(data: TerritoryDbInterface): Promise<TerritoryDbInterface> {
-    const { _id, ...patch } = data;
+  async update(data: PatchParamsInterface): Promise<TerritoryDbMetaInterface> {
+    // const { _id, ...patch } = data;
+    // TODO: to implement
+    throw new Error('Not implemented : query to adapt');
+
+    /*  
     await this.hasDoubleSiretThenFail(data.siret, _id);
 
     if (data.siret) {
@@ -162,9 +279,11 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
       cgu_accepted_by: null,
       ...patch,
     });
+    */
+    return null;
   }
 
-  async patch(id: number, patch: { [k: string]: any }): Promise<TerritoryDbInterface> {
+  async patch(id: number, patch: { [k: string]: any }): Promise<TerritoryDbMetaInterface> {
     const updatablefields = [
       'siret',
       'name',
@@ -214,11 +333,11 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
     return result.rows[0];
   }
 
-  async findByInsee(insee: string): Promise<TerritoryDbInterface> {
+  async findByInsee(insee: string): Promise<TerritoryDbMetaInterface> {
     throw new Error('This is not implemented here'); // move to normalization service
   }
 
-  async findByPosition(lon: number, lat: number): Promise<TerritoryDbInterface> {
+  async findByPosition(lon: number, lat: number): Promise<TerritoryDbMetaInterface> {
     throw new Error('This is not implemented here'); // move to normalization servie
   }
 }
