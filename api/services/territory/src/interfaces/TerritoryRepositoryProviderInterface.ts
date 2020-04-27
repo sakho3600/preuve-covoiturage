@@ -62,6 +62,9 @@ export abstract class TerritoryRepositoryProviderInterfaceResolver implements Te
   async patchContacts(id: number, contacts: ContactsInterface): Promise<TerritoryDbMetaInterface> {
     throw new Error();
   }
+  async getIntermediateRelationData(id: number): Promise<TerritoryChildrenInterface[]> {
+    throw new Error();
+  }
 
   async create(data: CreateParams): Promise<CreateResultInterface> {
     throw new Error();
