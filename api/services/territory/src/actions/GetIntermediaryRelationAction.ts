@@ -12,12 +12,12 @@ import { alias } from '../shared/territory/intermediaryRelation.schema';
     ['validate', alias],
   ],
 })
-export class GetIntermediaryRelationAction extends AbstractAction {
+export class GetTerritoryIntermediaryRelationAction extends AbstractAction {
   constructor(private territoryRepository: TerritoryRepositoryProviderInterfaceResolver) {
     super();
   }
 
   public async handle(params: ParamsInterface): Promise<ResultInterface> {
-    return this.territoryRepository.getIntermediateRelationData(params._id);
+    return this.territoryRepository.getTerritoryIntermediateRelationData(params._id);
   }
 }
