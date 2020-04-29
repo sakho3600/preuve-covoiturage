@@ -21,7 +21,10 @@ import {
   allBasicFieldEnum,
   TerritoryListFilter,
 } from '../../../../../../shared/territory/common/interfaces/TerritoryQueryInterface';
-import { TerritoryChildrenInterface } from '~/core/entities/api/shared/territory/common/interfaces/TerritoryChildrenInterface';
+import {
+  TerritoryChildrenInterface,
+  TerritoryParentChildrenInterface,
+} from '../../../../../../shared/territory/common/interfaces/TerritoryChildrenInterface';
 
 // eslint-disable-next-line
 import { TerritoryParentChildrenInterface } from '../../../../../../shared/territory/common/interfaces/TerritoryChildrenInterface';
