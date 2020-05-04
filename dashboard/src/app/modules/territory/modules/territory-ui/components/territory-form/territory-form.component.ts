@@ -38,6 +38,8 @@ export class TerritoryFormComponent extends DestroyObservable implements OnInit,
   @ViewChild(TerritoryChildrenComponent, { static: false })
   territoryChildren: TerritoryChildrenComponent;
 
+  @ViewChild('territoryChildren', { static: true }) territoryChildren: TerritoryChildrenComponent;
+
   fullFormMode = false;
   displayAOMActive = false;
   levelLabel = territoryLevelLabels;
@@ -144,6 +146,7 @@ export class TerritoryFormComponent extends DestroyObservable implements OnInit,
             }),
           ),
         ),
+
         // children: [],
 
         // children: [],
@@ -273,7 +276,9 @@ export class TerritoryFormComponent extends DestroyObservable implements OnInit,
     // base values for form
     this.editedId = territory ? territory._id : null;
     const territoryEd = new Territory(territory);
+    console.log('territoryEd : ', territoryEd);
     const formValues = territoryEd.toFormValues(this.fullFormMode);
+    console.log('formValues : ', formValues);
 
     delete formValues.uiSelectionState;
     this.territoryForm.setValue(formValues);

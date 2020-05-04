@@ -45,6 +45,7 @@ export class TerritoryListViewComponent extends DestroyObservable implements OnI
       )
       .subscribe((territory) => {
         this.territoryToEdit = territory;
+        console.log(' this.territoryToEdit ', this.territoryToEdit);
         this.showForm = true;
       });
 

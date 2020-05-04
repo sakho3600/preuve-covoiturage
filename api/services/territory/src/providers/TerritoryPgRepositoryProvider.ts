@@ -412,7 +412,23 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
     }
 
     // TODO: to implement
-    throw new Error('Not implemented : query to adapt');
+    // throw new Error('Not implemented : query to adapt');
+
+    /*
+    const query = {
+      text: `INSERT INTO (level,name,company_id,active,contacts)`,
+    };
+    */
+
+    // level: TerritoryLevelEnum;
+    // name: string;
+    // company_id?: number;
+    // active?: boolean;
+    // active_since?: Date;
+    // contacts?: ContactsInterface;
+    // density?: number;
+    // geo?: any; // TODO : geography type
+
     /*
     const query = {
       text: `
