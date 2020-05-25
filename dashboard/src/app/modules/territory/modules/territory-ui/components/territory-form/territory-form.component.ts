@@ -1,4 +1,14 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { filter, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
@@ -27,7 +37,7 @@ import { CompanyV2 } from '~/core/entities/shared/companyV2';
   templateUrl: './territory-form.component.html',
   styleUrls: ['./territory-form.component.scss'],
 })
-export class TerritoryFormComponent extends DestroyObservable implements OnInit, OnChanges {
+export class TerritoryFormComponent extends DestroyObservable implements OnInit, OnChanges, AfterViewInit {
   public territoryForm: FormGroup;
 
   @Input() showForm = false;
@@ -42,6 +52,8 @@ export class TerritoryFormComponent extends DestroyObservable implements OnInit,
 
   fullFormMode = false;
   displayAOMActive = false;
+  levelLabel = territoryLevelLabels;
+
   levelLabel = territoryLevelLabels;
 
   public editedId: number;
@@ -69,6 +81,16 @@ export class TerritoryFormComponent extends DestroyObservable implements OnInit,
       this.checkPermissions();
       this.updateValidation();
     });
+  }
+
+  ngAfterViewInit() {
+    // console.log('territoryChildren', this.territoryChildren);
+    // console.log('ngAfterViewInit > territoryChildren ', this.territoryChildren);
+    // console.log('ngAfterViewInit > test ', this.test);
+    // this.territoryChildrenQ.changes.subscribe((comps) => {
+    //   this.territoryChildren = comps[0];
+    //   console.log('this.territoryChildren', this.territoryChildren);
+    // });
   }
 
   get controls(): { [key: string]: AbstractControl } {
