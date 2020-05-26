@@ -411,25 +411,18 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
       values.push(`${data.geo}`);
     }
 
-    // TODO: to implement
-    // throw new Error('Not implemented : query to adapt');
+    const values: any[] = [data.name, data.shortname || '', data.level, data.contacts || '{}', data.address || '{}'];
 
-    /*
-    const query = {
-      text: `INSERT INTO (level,name,company_id,active,contacts)`,
-    };
-    */
+    if (data.density !== undefined) {
+      fields.push('density');
+      values.push(data.density);
+    }
 
-    // level: TerritoryLevelEnum;
-    // name: string;
-    // company_id?: number;
-    // active?: boolean;
-    // active_since?: Date;
-    // contacts?: ContactsInterface;
-    // density?: number;
-    // geo?: any; // TODO : geography type
+    if (data.company_id !== undefined) {
+      fields.push('company_id');
+      values.push(data.company_id);
+    }
 
-    /*
     const query = {
       text: `
         INSERT INTO ${this.table}
