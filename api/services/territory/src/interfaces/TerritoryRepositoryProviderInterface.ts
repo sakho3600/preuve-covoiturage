@@ -66,6 +66,10 @@ export abstract class TerritoryRepositoryProviderInterfaceResolver implements Te
     throw new Error();
   }
 
+  async patchContacts(id: number, contacts: ContactsInterface): Promise<TerritoryDbMetaInterface> {
+    throw new Error();
+  }
+
   async create(data: CreateParams): Promise<CreateResultInterface> {
     throw new Error();
   }

@@ -21,8 +21,12 @@ import {
   allBasicFieldEnum,
   TerritoryListFilter,
 } from '../../../../../../shared/territory/common/interfaces/TerritoryQueryInterface';
+
+// eslint-disable-next-line
 import { TerritoryParentChildrenInterface } from '../../../../../../shared/territory/common/interfaces/TerritoryChildrenInterface';
+// eslint-disable-next-line
 import { ResultInterface as UiStatusRelationDetailsList } from '../../../../../../shared/territory/relationUiStatus.contract';
+import { GetListActions } from '~/core/services/api/json-rpc.getlist';
 
 // eslint-disable-next-line
 import { TerritoryParentChildrenInterface } from '../../../../../../shared/territory/common/interfaces/TerritoryChildrenInterface';
@@ -65,6 +69,18 @@ export class TerritoryApiService extends JsonRpcCrud<Territory, Territory, any, 
   getRelationUIStatus(id: number): Observable<UiStatusRelationDetailsList> {
     const jsonRPCParam = new JsonRPCParam(`${this.method}:getTerritoryRelationUIStatus`, { _id: id });
     return this.callOne(jsonRPCParam).pipe(map((data) => data.data || [])) as Observable<UiStatusRelationDetailsList>;
+  }
+
+  paramGetById(
+    id: number,
+    sort: SortEnum[] = [SortEnum.NameAsc],
+    projection: any = allBasicFieldEnum,
+  ): JsonRPCParam<any> {
+    return this.paramGet({ _id: id } as any, sort, projection);
+  }
+
+  paramGet(params: any, sort: SortEnum[] = [SortEnum.NameAsc], projection: any = allBasicFieldEnum): JsonRPCParam<any> {
+    return new JsonRPCParam(`${this.method}:${GetListActions.FIND}`, { query: { ...params }, sort, projection });
   }
 
   paramGetById(
