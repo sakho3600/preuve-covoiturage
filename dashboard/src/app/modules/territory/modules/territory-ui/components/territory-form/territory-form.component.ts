@@ -276,7 +276,6 @@ export class TerritoryFormComponent extends DestroyObservable implements OnInit,
   // todo: ugly ...
   private setTerritoryFormValue(territory: Territory): void {
     // base values for form
-    console.log('territory ', territory);
     this.editedId = territory ? territory._id : null;
     const territoryEd = new Territory(territory);
     const formValues = territoryEd.toFormValues(this.fullFormMode);
