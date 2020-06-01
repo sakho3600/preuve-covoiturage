@@ -418,9 +418,14 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
       values.push(data.density);
     }
 
-    if (data.company_id !== undefined) {
+    if (data.company_id) {
       fields.push('company_id');
       values.push(data.company_id);
+    }
+
+    if (data.ui_status) {
+      fields.push('ui_status');
+      values.push(JSON.stringify(data.ui_status));
     }
 
     const query = {

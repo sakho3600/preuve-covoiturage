@@ -1,14 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-  SimpleChanges,
-  ViewChild,
-  AfterViewInit,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { filter, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
@@ -37,7 +27,7 @@ import { CompanyV2 } from '~/core/entities/shared/companyV2';
   templateUrl: './territory-form.component.html',
   styleUrls: ['./territory-form.component.scss'],
 })
-export class TerritoryFormComponent extends DestroyObservable implements OnInit, OnChanges, AfterViewInit {
+export class TerritoryFormComponent extends DestroyObservable implements OnInit, OnChanges {
   public territoryForm: FormGroup;
 
   @Input() showForm = false;
@@ -286,6 +276,7 @@ export class TerritoryFormComponent extends DestroyObservable implements OnInit,
   // todo: ugly ...
   private setTerritoryFormValue(territory: Territory): void {
     // base values for form
+    console.log('territory ', territory);
     this.editedId = territory ? territory._id : null;
     const territoryEd = new Territory(territory);
     const formValues = territoryEd.toFormValues(this.fullFormMode);

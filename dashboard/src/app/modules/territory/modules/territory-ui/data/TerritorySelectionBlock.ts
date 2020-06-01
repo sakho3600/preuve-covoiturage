@@ -153,6 +153,8 @@ export class TerritorySelectionBlock {
       this._selectedState = TerritorySelectionState.ALL;
     }
 
+    console.log('setSelectedStateFromChildren ', this.name, this._selectedState);
+
     this._selectedStateBehaviour.next(this._selectedState);
 
     if (propagateToParent === true && this._parent !== undefined) {

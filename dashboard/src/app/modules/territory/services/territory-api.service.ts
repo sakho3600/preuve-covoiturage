@@ -21,10 +21,8 @@ import {
   allBasicFieldEnum,
   TerritoryListFilter,
 } from '../../../../../../shared/territory/common/interfaces/TerritoryQueryInterface';
-import {
-  TerritoryChildrenInterface,
-  TerritoryParentChildrenInterface,
-} from '../../../../../../shared/territory/common/interfaces/TerritoryChildrenInterface';
+import { TerritoryParentChildrenInterface } from '../../../../../../shared/territory/common/interfaces/TerritoryChildrenInterface';
+import { ResultInterface as UiStatusRelationDetailsList } from '../../../../../../shared/territory/relationUiStatus.contract';
 
 // eslint-disable-next-line
 import { TerritoryParentChildrenInterface } from '../../../../../../shared/territory/common/interfaces/TerritoryChildrenInterface';
