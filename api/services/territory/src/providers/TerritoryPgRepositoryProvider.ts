@@ -335,7 +335,7 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
     };
 
     const rowCount = (await this.connection.getClient().query(query)).rowCount;
-    console.log('rowCount : ', rowCount);
+    // console.log('rowCount : ', rowCount);
     if (rowCount !== 0) throw new ConflictException('Double siret is not allowed for territory ' + id);
   }
 
