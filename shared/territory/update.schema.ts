@@ -8,12 +8,6 @@ export const update = {
   required: ['_id', 'level', 'name'],
   additionalProperties: false,
 
-  definitions: {
-    GeoPolys: {
-      $ref: 'http://json-schema.org/draft-07/schema#',
-    },
-  },
-
   properties: {
     _id: { macro: 'serial' },
     contacts,
