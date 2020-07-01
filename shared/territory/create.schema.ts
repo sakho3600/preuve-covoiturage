@@ -6,7 +6,6 @@ export const create = {
   type: 'object',
   required: ['level', 'name'],
   additionalProperties: false,
-
   properties: {
     contacts,
     name: { macro: 'varchar' },

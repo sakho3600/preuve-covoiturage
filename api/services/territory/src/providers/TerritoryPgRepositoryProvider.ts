@@ -428,6 +428,11 @@ export class TerritoryPgRepositoryProvider implements TerritoryRepositoryProvide
       values.push(JSON.stringify(data.ui_status));
     }
 
+    if (data.geo) {
+      //   fields.push('geo');
+      values.push(`${data.geo}`);
+    }
+
     const query = {
       text: `
         INSERT INTO ${this.table}
